@@ -1,0 +1,21 @@
+{
+  "name": "كلين ماستر",
+  "short_name": "كلين ماستر",
+  "display": "standalone",
+  "theme_color": "#218384",
+  "background_color": "#fcfcf9",
+  "start_url": "./",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%23218384'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='white' font-size='24' font-weight='bold'%3Eكم%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='%23218384'/%3E%3Ctext x='50' y='60' text-anchor='middle' fill='white' font-size='24' font-weight='bold'%3Eكم%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

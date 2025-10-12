@@ -1,0 +1,5 @@
+{
+  "name": "Clean Master - Cleaning Services",
+  "description": "A React application for Clean Master, a leading cleaning service provider in Egypt, allowing users to browse services, book appointments, track orders, and for admins to manage bookings.",
+  "requestFramePermissions": []
+}

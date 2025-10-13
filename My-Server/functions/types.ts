@@ -58,3 +58,31 @@ export interface Booking {
   advancePayment?: number;
   service?: SelectedService; // CORRECTED TYPE: Was string, is now an object for backward compatibility.
 }
+
+// Centralized interface for the main application data constant
+export interface AppData {
+  company_info: {
+    name_ar: string;
+    name_en: string;
+    description_ar: string;
+    phone: string;
+    whatsapp: string;
+    payment_number: string;
+    email: string;
+    locations: string[];
+    working_hours: string;
+  };
+  admin_credentials: {
+    username: string;
+    password: string;
+  };
+  services: Service[];
+  config: {
+    imgbb_api_key: string;
+    whatsapp_number: string;
+    payment_number: string;
+    minimum_area: number;
+    discount_percentage: number;
+    advance_payment_percentage: number;
+  };
+}

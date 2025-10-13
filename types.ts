@@ -33,7 +33,6 @@ export interface Location {
 
 export type BookingStatus = "new" | "confirmed" | "in-progress" | "completed" | "cancelled";
 
-// This is the single, authoritative Booking type. The server now guarantees this structure.
 export interface Booking {
   bookingId: string;
   timestamp: string; 
@@ -46,9 +45,7 @@ export interface Booking {
   finalPrice: number;
   paymentMethod: 'cash' | 'electronic';
   services: SelectedService[]; 
-  photos: Photo[]; 
-
-  // Optional fields for backward compatibility and additional data
+  photos: Photo[];
   email?: string;
   notes?: string;
   location?: Location | null;
@@ -56,5 +53,4 @@ export interface Booking {
   basePrice?: number;
   discountAmount?: number;
   advancePayment?: number;
-  service?: SelectedService; // For legacy booking objects
 }

@@ -1,9 +1,6 @@
+import { Service } from './types';
 
-import { AppData } from './types';
-
-// By using a typed constant imported from a central types file, 
-// TypeScript can validate the entire structure robustly.
-export const appData: AppData = {
+export const appData = {
   company_info: {
     name_ar: "كلين ماستر",
     name_en: "Clean Master",
@@ -230,7 +227,7 @@ export const appData: AppData = {
       includes: ["تنظيف شامل", "إزالة الأوساخ", "تجفيف سريع", "تعطير"],
       video_url: "https://www.youtube.com/embed/rVZyAAM4i4A"
     }
-  ],
+  ] as Service[],
   config: {
     imgbb_api_key: "bde613bd4475de5e00274a795091ba04",
     whatsapp_number: "201013373634",

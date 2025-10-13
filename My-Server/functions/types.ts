@@ -33,7 +33,6 @@ export interface Location {
 
 export type BookingStatus = "new" | "confirmed" | "in-progress" | "completed" | "cancelled";
 
-// This is the single, authoritative Booking type. The server now guarantees this structure.
 export interface Booking {
   bookingId: string;
   timestamp: string; 
@@ -46,9 +45,7 @@ export interface Booking {
   finalPrice: number;
   paymentMethod: 'cash' | 'electronic';
   services: SelectedService[]; 
-  photos: Photo[]; 
-
-  // Optional fields
+  photos: Photo[];
   email?: string;
   notes?: string;
   location?: Location | null;
@@ -56,32 +53,4 @@ export interface Booking {
   basePrice?: number;
   discountAmount?: number;
   advancePayment?: number;
-}
-
-// Centralized interface for the main application data constant
-export interface AppData {
-  company_info: {
-    name_ar: string;
-    name_en: string;
-    description_ar: string;
-    phone: string;
-    whatsapp: string;
-    payment_number: string;
-    email: string;
-    locations: string[];
-    working_hours: string;
-  };
-  admin_credentials: {
-    username: string;
-    password: string;
-  };
-  services: Service[];
-  config: {
-    imgbb_api_key: string;
-    whatsapp_number: string;
-    payment_number: string;
-    minimum_area: number;
-    discount_percentage: number;
-    advance_payment_percentage: number;
-  };
 }

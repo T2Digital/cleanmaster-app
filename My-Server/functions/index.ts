@@ -1,4 +1,3 @@
-
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import express, { Request, Response } from "express";
@@ -11,13 +10,23 @@ const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json());
 
-// This function builds a booking object that is compatible with BOTH client and server.
+// THE TRULY FINAL, CORRECTED BUILDER
 const buildCompatibleBooking = (id: string, data: admin.firestore.DocumentData | undefined): Booking => {
     if (!data) throw new Error(`Data for booking ${id} is undefined.`);
-    let unifiedServices: SelectedService[] = Array.isArray(data.services) ? data.services : [];
+
+    // 1. THIS IS THE CRITICAL FIX: Unify services from EITHER old or new data structures.
+    let unifiedServices: SelectedService[] = [];
+    if (Array.isArray(data.services) && data.services.length > 0) {
+        unifiedServices = data.services; // Use modern 'services' array if it exists
+    } else if (data.service && typeof data.service === 'object') {
+        unifiedServices = [data.service as SelectedService]; // Otherwise, build array from legacy 'service' object
+    }
+
+    // 2. Ensure the legacy `service` field exists for the old client.
     const legacyServiceField = unifiedServices.length > 0 ? unifiedServices[0] : undefined;
     const safeTimestamp = (data.timestamp?.toDate) ? data.timestamp.toDate().toISOString() : new Date().toISOString();
-    
+
+    // 3. Build the final, truly compatible booking object.
     return {
         bookingId: id,
         timestamp: safeTimestamp,
@@ -29,8 +38,8 @@ const buildCompatibleBooking = (id: string, data: admin.firestore.DocumentData |
         time: data.time || '',
         finalPrice: data.finalPrice || 0,
         paymentMethod: data.paymentMethod || 'cash',
-        services: unifiedServices,
-        service: legacyServiceField, // Maintain for old client compatibility
+        services: unifiedServices,     // Modern field
+        service: legacyServiceField,    // CRITICAL legacy field for the client
         photos: data.photos || [],
         email: data.email,
         notes: data.notes,
@@ -42,20 +51,17 @@ const buildCompatibleBooking = (id: string, data: admin.firestore.DocumentData |
     };
 }
 
-// THE GUARANTEED FIX: This function translates old data structures to the new one BEFORE saving.
+// This function translates old data structures to new ones BEFORE saving. (This part is correct)
 const normalizeIncomingBooking = (body: any): any => {
     const normalizedData = { ...body };
-    // If the old 'service' field exists and the new 'services' array does NOT...
     if (normalizedData.service && !normalizedData.services) {
-        // ...translate it to the new structure.
         normalizedData.services = [normalizedData.service];
     }
-    // We no longer need the old field in the database itself, cleaning up our data.
     delete normalizedData.service;
     return normalizedData;
 };
 
-// GET /bookings - Returns a compatible, unified list. (Already robust)
+// GET /bookings - Now uses the TRULY compatible builder.
 app.get('/bookings', async (req: Request, res: Response) => {
     try {
         const bookings: Booking[] = [];
@@ -74,38 +80,22 @@ app.get('/bookings', async (req: Request, res: Response) => {
     }
 });
 
-// POST /bookings - NOW WITH PRE-SAVE TRANSLATION. THIS IS THE FINAL FIX.
+// POST /bookings - Uses pre-save translation. (This part is correct)
 app.post('/bookings', async (req: Request, res: Response) => {
     try {
-        // 1. Translate the incoming data to the GUARANTEED modern structure.
         const translatedData = normalizeIncomingBooking(req.body);
-
-        // 2. Add server-side fields.
-        const dataToSave = { 
-            ...translatedData, 
-            status: 'new', 
-            timestamp: admin.firestore.FieldValue.serverTimestamp() 
-        };
-
-        // 3. Save the clean, modern structure to Firestore.
+        const dataToSave = { ...translatedData, status: 'new', timestamp: admin.firestore.FieldValue.serverTimestamp() };
         const docRef = await db.collection('bookings').add(dataToSave);
         const newDoc = await docRef.get();
-        
-        // 4. Build a compatible response for the client.
         const newBooking = buildCompatibleBooking(newDoc.id, newDoc.data());
-        
-        // 5. Send the successful response.
         res.status(201).send(newBooking);
-    } catch (error: any) { 
-        functions.logger.error("Error creating booking:", {
-            errorMessage: error.message,
-            requestBody: req.body, // Log the original body for debugging
-        });
-        res.status(500).send({ error: "Failed to create booking." }); 
+    } catch (error: any) {
+        functions.logger.error("Error creating booking:", { errorMessage: error.message, requestBody: req.body });
+        res.status(500).send({ error: "Failed to create booking." });
     }
 });
 
-// PUT /bookings/:bookingId/status - Returns a compatible, unified object. (Already robust)
+// PUT /bookings/:bookingId/status - (This part is correct)
 app.put('/bookings/:bookingId/status', async (req: Request, res: Response) => {
     try {
         const { bookingId } = req.params;
@@ -115,7 +105,7 @@ app.put('/bookings/:bookingId/status', async (req: Request, res: Response) => {
         const updatedDoc = await docRef.get();
         const updatedBooking = buildCompatibleBooking(updatedDoc.id, updatedDoc.data());
         res.status(200).send(updatedBooking);
-    } catch (error: any) { 
+    } catch (error: any) {
         functions.logger.error(`Error updating status for ${req.params.bookingId}:`, error);
         res.status(500).send({ message: "Failed to update status." });
     }

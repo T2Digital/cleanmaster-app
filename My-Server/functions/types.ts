@@ -1,3 +1,4 @@
+
 export type ServiceType = "meter" | "fixed" | "consultation";
 
 export interface Service {
@@ -55,5 +56,5 @@ export interface Booking {
   basePrice?: number;
   discountAmount?: number;
   advancePayment?: number;
-  service?: string; // This may still come from the client, but the server will transform it.
+  service?: SelectedService; // CORRECTED TYPE: Was string, is now an object for backward compatibility.
 }

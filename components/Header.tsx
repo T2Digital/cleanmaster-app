@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 
@@ -24,27 +25,21 @@ const Header: React.FC = () => {
             }
         };
 
-        // If already on the homepage and there's a hash, just scroll
-        if (location.pathname === '/' && hash) {
+        if (location.pathname === pathname && hash) {
             scrollToHash(hash);
         } else if (hash) {
-            // If on a different page, navigate to home first, then scroll
-            navigate('/');
-            // Use timeout to allow the page to change before scrolling
+            navigate(pathname || '/');
             setTimeout(() => scrollToHash(hash), 100);
         } else {
-             // If it's a regular path with no hash (like /orders), just navigate
-            navigate(pathname || path);
+            navigate(pathname);
         }
 
         setMobileMenuOpen(false);
     };
 
-    // This effect handles scrolling if the user lands directly on a URL with a hash
     useEffect(() => {
         if (location.pathname === '/' && location.hash) {
             const hashId = location.hash.substring(1);
-            // Use timeout to ensure the element is rendered
             setTimeout(() => {
                 const element = document.getElementById(hashId);
                 if (element) {

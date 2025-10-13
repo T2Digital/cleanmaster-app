@@ -1,4 +1,3 @@
-
 export type ServiceType = "meter" | "fixed" | "consultation";
 
 export interface Service {
@@ -33,11 +32,10 @@ export interface Location {
 
 export type BookingStatus = "new" | "confirmed" | "in-progress" | "completed" | "cancelled";
 
-// This is the master booking type that supports both old and new booking structures.
+// This is the single, authoritative Booking type. The server now guarantees this structure.
 export interface Booking {
-  // Core fields, always present
   bookingId: string;
-  timestamp: string;
+  timestamp: string; 
   status: BookingStatus;
   customerName: string;
   phone: string;
@@ -46,8 +44,10 @@ export interface Booking {
   time: string;
   finalPrice: number;
   paymentMethod: 'cash' | 'electronic';
+  services: SelectedService[]; 
+  photos: Photo[]; 
 
-  // Fields that might not exist in all bookings
+  // Optional fields
   email?: string;
   notes?: string;
   location?: Location | null;
@@ -55,9 +55,5 @@ export interface Booking {
   basePrice?: number;
   discountAmount?: number;
   advancePayment?: number;
-
-  // Differentiating fields for service type
-  service?: string; // For new, simple bookings
-  services?: SelectedService[]; // For old, detailed bookings
-  photos?: Photo[]; // May not exist in new bookings
+  service?: string; // This may still come from the client, but the server will transform it.
 }

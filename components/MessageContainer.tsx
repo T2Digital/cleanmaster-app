@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 
 interface Message {
     id: number;
@@ -19,6 +19,35 @@ const MessageContainer: React.FC<MessageContainerProps> = ({ messages, removeMes
         error: 'border-r-[#C0152F]',
     };
 
+    useEffect(() => {
+        const styleId = 'message-container-animation';
+        if (document.getElementById(styleId)) {
+            return;
+        }
+
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.innerHTML = `
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}`;
+        document.head.appendChild(style);
+
+        return () => {
+            const styleElement = document.getElementById(styleId);
+            if (styleElement) {
+                document.head.removeChild(styleElement);
+            }
+        };
+    }, []);
+
     return (
         <div className="fixed top-20 right-4 md:right-5 z-[9998] flex flex-col gap-2 w-11/12 max-w-md">
             {messages.map((msg) => (
@@ -33,21 +62,5 @@ const MessageContainer: React.FC<MessageContainerProps> = ({ messages, removeMes
         </div>
     );
 };
-
-// Add keyframes for animation in a style tag or a separate CSS file if preferred
-const style = document.createElement('style');
-style.innerHTML = `
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}`;
-document.head.appendChild(style);
-
 
 export default MessageContainer;

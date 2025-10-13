@@ -3,6 +3,7 @@ import * as admin from "firebase-admin";
 import express, { Request, Response } from "express";
 import cors from "cors";
 import { Booking, SelectedService, Photo } from "./types";
+import { appData } from './constants'; // THE CORRECT IMPORT
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -10,65 +11,49 @@ const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json());
 
-// A fallback service object to prevent client-side crashes from corrupted data.
+// THE CORRECTED ENDPOINT
+app.get('/constants', (req: Request, res: Response) => {
+    try {
+        res.status(200).send(appData); // SENDING THE CORRECT OBJECT
+    } catch (error: any) {
+        functions.logger.error("Failed to fetch constants", { error: error.message });
+        res.status(500).send({ error: "Failed to fetch constants." });
+    }
+});
+
+// All other code remains the same...
 const fallbackService: SelectedService = {
-    id: "unknown",
-    name_ar: "خدمة غير محددة",
-    price: 0,
-    type: "unknown",
+    id: "unknown", name_ar: "خدمة غير محددة", price: 0, type: "unknown",
     description_ar: "هذا الحجز لا يحتوي على خدمة مسجلة بشكل صحيح.",
-    icon: "fas fa-question-circle",
-    includes: [],
-    video_url: ""
+    icon: "fas fa-question-circle", includes: [], video_url: ""
 };
 
-// THE BULLETPROOF, FORTIFIED, FINAL BUILDER
 const buildCompatibleBooking = (id: string, data: admin.firestore.DocumentData | undefined): Booking => {
     if (!data) throw new Error(`Data for booking ${id} is undefined.`);
-
-    // 1. Unify services from EITHER old or new data structures.
     let unifiedServices: SelectedService[] = [];
     if (Array.isArray(data.services) && data.services.length > 0) {
         unifiedServices = data.services;
     } else if (data.service && typeof data.service === 'object') {
         unifiedServices = [data.service as SelectedService];
     }
-
-    // 2. THIS IS THE ULTIMATE FIX: Guarantee the legacy service field is NEVER undefined.
     let legacyServiceField = unifiedServices.length > 0 ? unifiedServices[0] : undefined;
     if (!legacyServiceField) {
         functions.logger.warn(`Booking ${id} has no valid service. Using fallback to prevent crash.`);
         legacyServiceField = fallbackService;
     }
-    
     const safeTimestamp = (data.timestamp?.toDate) ? data.timestamp.toDate().toISOString() : new Date().toISOString();
-
-    // 3. Build the final, crash-proof booking object.
     return {
-        bookingId: id,
-        timestamp: safeTimestamp,
-        status: data.status || 'new',
-        customerName: data.customerName || 'اسم غير متوفر',
-        phone: data.phone || 'هاتف غير متوفر',
-        address: data.address || 'عنوان غير متوفر',
-        date: data.date || '',
-        time: data.time || '',
-        finalPrice: data.finalPrice || 0,
-        paymentMethod: data.paymentMethod || 'cash',
-        services: unifiedServices,
-        service: legacyServiceField, // THIS IS NOW GUARANTEED TO BE A VALID OBJECT.
-        photos: data.photos || [],
-        email: data.email,
-        notes: data.notes,
-        location: data.location,
-        paymentProof: data.paymentProof,
-        basePrice: data.basePrice,
-        discountAmount: data.discountAmount,
-        advancePayment: data.advancePayment,
+        bookingId: id, timestamp: safeTimestamp, status: data.status || 'new',
+        customerName: data.customerName || 'اسم غير متوفر', phone: data.phone || 'هاتف غير متوفر',
+        address: data.address || 'عنوان غير متوفر', date: data.date || '', time: data.time || '',
+        finalPrice: data.finalPrice || 0, paymentMethod: data.paymentMethod || 'cash',
+        services: unifiedServices, service: legacyServiceField, photos: data.photos || [],
+        email: data.email, notes: data.notes, location: data.location,
+        paymentProof: data.paymentProof, basePrice: data.basePrice,
+        discountAmount: data.discountAmount, advancePayment: data.advancePayment,
     };
-}
+};
 
-// Translates old data structures to new ones BEFORE saving. (This part is correct)
 const normalizeIncomingBooking = (body: any): any => {
     const normalizedData = { ...body };
     if (normalizedData.service && !normalizedData.services) {
@@ -78,7 +63,6 @@ const normalizeIncomingBooking = (body: any): any => {
     return normalizedData;
 };
 
-// GET /bookings - Now uses the BULLETPROOF builder.
 app.get('/bookings', async (req: Request, res: Response) => {
     try {
         const bookings: Booking[] = [];
@@ -97,7 +81,6 @@ app.get('/bookings', async (req: Request, res: Response) => {
     }
 });
 
-// POST /bookings - Uses pre-save translation. (This part is correct)
 app.post('/bookings', async (req: Request, res: Response) => {
     try {
         const translatedData = normalizeIncomingBooking(req.body);
@@ -112,7 +95,6 @@ app.post('/bookings', async (req: Request, res: Response) => {
     }
 });
 
-// PUT /bookings/:bookingId/status - (This part is correct)
 app.put('/bookings/:bookingId/status', async (req: Request, res: Response) => {
     try {
         const { bookingId } = req.params;

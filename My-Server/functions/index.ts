@@ -2,7 +2,7 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import express, { Request, Response } from "express";
 import cors from "cors";
-import { Booking, SelectedService, Photo } from "./types";
+import { Booking, SelectedService } from "./types"; // Removed unused Photo import
 import { appData } from './constants';
 
 admin.initializeApp();
@@ -20,32 +20,38 @@ app.get('/constants', (req: Request, res: Response) => {
     }
 });
 
-// THIS IS THE CRITICAL FIX
 const fallbackService: SelectedService = {
     id: "unknown",
     name_ar: "خدمة غير محددة",
     price: 0,
-    type: "fixed", // CORRECTED FROM "unknown"
+    type: "fixed",
     description_ar: "هذا الحجز لا يحتوي على خدمة مسجلة بشكل صحيح.",
     icon: "fas fa-question-circle",
     includes: [],
-    video_url: ""
+    video_url: "",
+    quantity: 1,      // Added for full compliance
+    totalPrice: 0     // Added for full compliance
 };
 
+// THIS IS THE FULLY CORRECTED, FINAL VERSION OF THE FUNCTION
 const buildCompatibleBooking = (id: string, data: admin.firestore.DocumentData | undefined): Booking => {
     if (!data) throw new Error(`Data for booking ${id} is undefined.`);
+
     let unifiedServices: SelectedService[] = [];
     if (Array.isArray(data.services) && data.services.length > 0) {
         unifiedServices = data.services;
     } else if (data.service && typeof data.service === 'object') {
         unifiedServices = [data.service as SelectedService];
     }
-    let legacyServiceField = unifiedServices.length > 0 ? unifiedServices[0] : undefined;
-    if (!legacyServiceField) {
-        functions.logger.warn(`Booking ${id} has no valid service. Using fallback to prevent crash.`);
-        legacyServiceField = fallbackService;
+
+    // If after all checks, services are still empty, use a fallback to prevent crashes.
+    if (unifiedServices.length === 0) {
+        functions.logger.warn(`Booking ${id} has no valid service items. Using fallback.`);
+        unifiedServices = [fallbackService];
     }
+    
     const safeTimestamp = (data.timestamp?.toDate) ? data.timestamp.toDate().toISOString() : new Date().toISOString();
+
     return {
         bookingId: id,
         timestamp: safeTimestamp,
@@ -57,8 +63,7 @@ const buildCompatibleBooking = (id: string, data: admin.firestore.DocumentData |
         time: data.time || '',
         finalPrice: data.finalPrice || 0,
         paymentMethod: data.paymentMethod || 'cash',
-        services: unifiedServices,
-        service: legacyServiceField,
+        services: unifiedServices, // THE ONLY SERVICE FIELD
         photos: data.photos || [],
         email: data.email,
         notes: data.notes,
@@ -75,7 +80,7 @@ const normalizeIncomingBooking = (body: any): any => {
     if (normalizedData.service && !normalizedData.services) {
         normalizedData.services = [normalizedData.service];
     }
-    delete normalizedData.service;
+    delete normalizedData.service; // Always remove the old field
     return normalizedData;
 };
 

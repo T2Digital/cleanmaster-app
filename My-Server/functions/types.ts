@@ -56,7 +56,6 @@ export interface Booking {
   basePrice?: number;
   discountAmount?: number;
   advancePayment?: number;
-  service?: SelectedService; // CORRECTED TYPE: Was string, is now an object for backward compatibility.
 }
 
 // Centralized interface for the main application data constant

@@ -10,23 +10,40 @@ const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json());
 
-// THE TRULY FINAL, CORRECTED BUILDER
+// A fallback service object to prevent client-side crashes from corrupted data.
+const fallbackService: SelectedService = {
+    id: "unknown",
+    name_ar: "خدمة غير محددة",
+    price: 0,
+    type: "unknown",
+    description_ar: "هذا الحجز لا يحتوي على خدمة مسجلة بشكل صحيح.",
+    icon: "fas fa-question-circle",
+    includes: [],
+    video_url: ""
+};
+
+// THE BULLETPROOF, FORTIFIED, FINAL BUILDER
 const buildCompatibleBooking = (id: string, data: admin.firestore.DocumentData | undefined): Booking => {
     if (!data) throw new Error(`Data for booking ${id} is undefined.`);
 
-    // 1. THIS IS THE CRITICAL FIX: Unify services from EITHER old or new data structures.
+    // 1. Unify services from EITHER old or new data structures.
     let unifiedServices: SelectedService[] = [];
     if (Array.isArray(data.services) && data.services.length > 0) {
-        unifiedServices = data.services; // Use modern 'services' array if it exists
+        unifiedServices = data.services;
     } else if (data.service && typeof data.service === 'object') {
-        unifiedServices = [data.service as SelectedService]; // Otherwise, build array from legacy 'service' object
+        unifiedServices = [data.service as SelectedService];
     }
 
-    // 2. Ensure the legacy `service` field exists for the old client.
-    const legacyServiceField = unifiedServices.length > 0 ? unifiedServices[0] : undefined;
+    // 2. THIS IS THE ULTIMATE FIX: Guarantee the legacy service field is NEVER undefined.
+    let legacyServiceField = unifiedServices.length > 0 ? unifiedServices[0] : undefined;
+    if (!legacyServiceField) {
+        functions.logger.warn(`Booking ${id} has no valid service. Using fallback to prevent crash.`);
+        legacyServiceField = fallbackService;
+    }
+    
     const safeTimestamp = (data.timestamp?.toDate) ? data.timestamp.toDate().toISOString() : new Date().toISOString();
 
-    // 3. Build the final, truly compatible booking object.
+    // 3. Build the final, crash-proof booking object.
     return {
         bookingId: id,
         timestamp: safeTimestamp,
@@ -38,8 +55,8 @@ const buildCompatibleBooking = (id: string, data: admin.firestore.DocumentData |
         time: data.time || '',
         finalPrice: data.finalPrice || 0,
         paymentMethod: data.paymentMethod || 'cash',
-        services: unifiedServices,     // Modern field
-        service: legacyServiceField,    // CRITICAL legacy field for the client
+        services: unifiedServices,
+        service: legacyServiceField, // THIS IS NOW GUARANTEED TO BE A VALID OBJECT.
         photos: data.photos || [],
         email: data.email,
         notes: data.notes,
@@ -51,7 +68,7 @@ const buildCompatibleBooking = (id: string, data: admin.firestore.DocumentData |
     };
 }
 
-// This function translates old data structures to new ones BEFORE saving. (This part is correct)
+// Translates old data structures to new ones BEFORE saving. (This part is correct)
 const normalizeIncomingBooking = (body: any): any => {
     const normalizedData = { ...body };
     if (normalizedData.service && !normalizedData.services) {
@@ -61,7 +78,7 @@ const normalizeIncomingBooking = (body: any): any => {
     return normalizedData;
 };
 
-// GET /bookings - Now uses the TRULY compatible builder.
+// GET /bookings - Now uses the BULLETPROOF builder.
 app.get('/bookings', async (req: Request, res: Response) => {
     try {
         const bookings: Booking[] = [];

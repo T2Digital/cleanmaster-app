@@ -1,6 +1,36 @@
-import { Service } from './types';
 
-export const appData = {
+import { Service, ServiceType } from './types';
+
+// Define a strict type for the entire appData object
+interface AppData {
+  company_info: {
+    name_ar: string;
+    name_en: string;
+    description_ar: string;
+    phone: string;
+    whatsapp: string;
+    payment_number: string;
+    email: string;
+    locations: string[];
+    working_hours: string;
+  };
+  admin_credentials: {
+    username: string;
+    password: string;
+  };
+  services: Service[];
+  config: {
+    imgbb_api_key: string;
+    whatsapp_number: string;
+    payment_number: string;
+    minimum_area: number;
+    discount_percentage: number;
+    advance_payment_percentage: number;
+  };
+}
+
+// By using a typed constant, TypeScript can validate the entire structure.
+export const appData: AppData = {
   company_info: {
     name_ar: "كلين ماستر",
     name_en: "Clean Master",
@@ -227,7 +257,7 @@ export const appData = {
       includes: ["تنظيف شامل", "إزالة الأوساخ", "تجفيف سريع", "تعطير"],
       video_url: "https://www.youtube.com/embed/rVZyAAM4i4A"
     }
-  ] as Service[],
+  ],
   config: {
     imgbb_api_key: "bde613bd4475de5e00274a795091ba04",
     whatsapp_number: "201013373634",

@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { GoogleGenAI, Content } from "@google/genai";
 import { AppContext } from '../App';
-import { Booking } from '../types';
 
 interface ChatMessage {
     id: string;
@@ -44,7 +43,7 @@ const ChatBot: React.FC = () => {
             setMessages(prev => [...prev, { 
                 id: Date.now().toString(), 
                 role: 'model', 
-                text: "⚠️ عذراً، مساعد الذكاء الاصطناعي غير مفعل حالياً (مفتاح API مفقود). يرجى إكمال حجزك يدوياً أو عبر الواتساب.", 
+                text: "⚠️ عذراً، مساعد الذكاء الاصطناعي يتطلب مفتاح API للعمل. يرجى إتمام حجزك يدوياً عبر الموقع أو الواتساب.", 
                 isError: true 
             }]);
             return;
@@ -54,12 +53,14 @@ const ChatBot: React.FC = () => {
         const systemInstruction = `أنت مساعد ذكي لشركة كلين ماستر للتنظيف بمصر. تحدث بلهجة مصرية مهذبة. الخدمات المتاحة: ${services.map(s => s.name_ar).join(', ')}. هدفك مساعدة العميل في اختيار الخدمة المناسبة وحجزها.`;
 
         try {
+            // ALWAYS use named parameter for apiKey during initialization
             const ai = new GoogleGenAI({ apiKey });
             const currentHistory = [...chatHistory];
             currentHistory.push({ role: 'user', parts: [{ text: userText }] });
 
+            // Using gemini-3-flash-preview for general tasks as per guidelines
             const response = await ai.models.generateContent({
-                model: 'gemini-1.5-flash',
+                model: 'gemini-3-flash-preview',
                 contents: currentHistory,
                 config: { systemInstruction }
             });
@@ -69,7 +70,7 @@ const ChatBot: React.FC = () => {
             setChatHistory([...currentHistory, { role: 'model', parts: [{ text: aiResponse }] }]);
         } catch (e) {
             console.error("Gemini API Error:", e);
-            setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "حدث خطأ فني أثناء المحادثة. يمكنك تجربة تحديث الصفحة أو التواصل معنا مباشرة.", isError: true }]);
+            setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "حدث خطأ أثناء محاولة الاتصال بذكاء التطبيق. يمكنك تجربة الحجز يدوياً بالضغط على زر الحجز.", isError: true }]);
         } finally {
             setIsLoading(false);
         }

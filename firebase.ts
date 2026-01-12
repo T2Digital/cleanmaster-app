@@ -11,10 +11,10 @@ const firebaseConfig = {
   measurementId: "G-XM7Q2PX8VR"
 };
 
-// Initialize App only once
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+// Ensure app is initialized with valid config
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// Get Firestore instance using the initialized app
+// Explicitly associate the database instance with the initialized app to prevent project path errors
 const db = getFirestore(app);
 
 export { db };

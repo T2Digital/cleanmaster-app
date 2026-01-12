@@ -1,7 +1,6 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
-// The configuration must be complete and hardcoded to prevent environment variable reading errors in the browser.
 const firebaseConfig = {
   apiKey: "AIzaSyDZJ_uzBhwPOcvmsWXFrg-1ovDc7YzKMmE",
   authDomain: "clean-master-16883.firebaseapp.com",
@@ -12,10 +11,8 @@ const firebaseConfig = {
   measurementId: "G-XM7Q2PX8VR"
 };
 
-// Initialize Firebase once
-const app = initializeApp(firebaseConfig);
-
-// Initialize Firestore
+// Singleton initialization to prevent multiple instances or empty configs
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
 
 export { db };

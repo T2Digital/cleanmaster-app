@@ -9,7 +9,7 @@
       "destination": "/manifest.json"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!service-worker.js|manifest.json|.*\\.).*)",
       "destination": "/index.html"
     }
   ]

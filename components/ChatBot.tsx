@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { GoogleGenAI, Type, Content } from "@google/genai";
-import { appData } from '../constants';
+import { GoogleGenAI, Content } from "@google/genai";
 import { AppContext } from '../App';
 import { Booking } from '../types';
 
@@ -19,7 +18,6 @@ const ChatBot: React.FC = () => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [inputText, setInputText] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [bookingContext, setBookingContext] = useState<Partial<Booking>>({ services: [] });
     const [chatHistory, setChatHistory] = useState<Content[]>([]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -39,16 +37,21 @@ const ChatBot: React.FC = () => {
     const processAIInteraction = async (userText: string) => {
         if (!userText.trim()) return;
         
-        // Ensure process.env.API_KEY is available
+        // Exclusively get API_KEY from process.env
         const apiKey = process.env.API_KEY;
         
         if (!apiKey || apiKey === "undefined") {
-            setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "⚠️ نظام الذكاء الاصطناعي يتطلب مفتاح تشغيل (API KEY) غير متوفر حالياً في إعدادات الخادم. يرجى إتمام حجزك عبر الواتساب.", isError: true }]);
+            setMessages(prev => [...prev, { 
+                id: Date.now().toString(), 
+                role: 'model', 
+                text: "⚠️ عذراً، مساعد الذكاء الاصطناعي غير مفعل حالياً (مفتاح API مفقود). يرجى إكمال حجزك يدوياً أو عبر الواتساب.", 
+                isError: true 
+            }]);
             return;
         }
 
         setIsLoading(true);
-        const systemInstruction = `أنت مساعد ذكي لشركة كلين ماستر للتنظيف بمصر. تحدث بلهجة مصرية. الخدمات: ${services.map(s => s.name_ar).join(', ')}`;
+        const systemInstruction = `أنت مساعد ذكي لشركة كلين ماستر للتنظيف بمصر. تحدث بلهجة مصرية مهذبة. الخدمات المتاحة: ${services.map(s => s.name_ar).join(', ')}. هدفك مساعدة العميل في اختيار الخدمة المناسبة وحجزها.`;
 
         try {
             const ai = new GoogleGenAI({ apiKey });
@@ -56,17 +59,17 @@ const ChatBot: React.FC = () => {
             currentHistory.push({ role: 'user', parts: [{ text: userText }] });
 
             const response = await ai.models.generateContent({
-                model: 'gemini-1.5-flash', // Using a stable model fallback
+                model: 'gemini-1.5-flash',
                 contents: currentHistory,
                 config: { systemInstruction }
             });
 
-            const aiResponse = response.text || "أنا هنا، كيف أساعدك؟";
+            const aiResponse = response.text || "أنا معك، كيف يمكنني مساعدتك اليوم؟";
             setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: aiResponse }]);
             setChatHistory([...currentHistory, { role: 'model', parts: [{ text: aiResponse }] }]);
         } catch (e) {
-            console.error("Gemini Error:", e);
-            setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "حدث خطأ أثناء معالجة طلبك. يرجى المحاولة لاحقاً.", isError: true }]);
+            console.error("Gemini API Error:", e);
+            setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "حدث خطأ فني أثناء المحادثة. يمكنك تجربة تحديث الصفحة أو التواصل معنا مباشرة.", isError: true }]);
         } finally {
             setIsLoading(false);
         }
@@ -75,7 +78,6 @@ const ChatBot: React.FC = () => {
     const handleServiceSelect = (id: string) => {
         const s = services.find(x => x.id === id);
         if (!s) return;
-        setBookingContext(prev => ({ ...prev, services: [...(prev.services || []), { ...s, quantity: 1, totalPrice: s.price }] }));
         setMessages(prev => [...prev, 
             { id: Date.now().toString(), role: 'user', text: `أريد حجز: ${s.name_ar}` },
             { id: (Date.now()+1).toString(), role: 'model', text: `تمام، محتاج ${s.type === 'meter' ? 'كام متر' : 'كام قطعة'}؟`, uiComponent: 'quantity-input' }
@@ -83,14 +85,6 @@ const ChatBot: React.FC = () => {
     };
 
     const handleQuantitySubmit = (q: number) => {
-        setBookingContext(prev => {
-            const copy = [...(prev.services || [])];
-            if (copy.length) {
-                copy[copy.length-1].quantity = q;
-                copy[copy.length-1].totalPrice = copy[copy.length-1].price * q;
-            }
-            return { ...prev, services: copy };
-        });
         setMessages(prev => [...prev, 
             { id: Date.now().toString(), role: 'user', text: `${q}` },
             { id: (Date.now()+1).toString(), role: 'model', text: 'تمام، هل تريد إضافة شيء آخر؟', uiComponent: 'cart-actions' }
@@ -112,38 +106,38 @@ const ChatBot: React.FC = () => {
                 <div className="flex-grow overflow-y-auto p-4 space-y-4 bg-gray-50">
                     {messages.map(m => (
                         <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-start' : 'justify-end'}`}>
-                            <div className={`p-3 rounded-2xl max-w-[85%] text-xs shadow-sm ${m.role === 'user' ? 'bg-[#21808D] text-white rounded-bl-none' : 'bg-white border text-gray-800 rounded-br-none'}`}>
+                            <div className={`p-3 rounded-2xl max-w-[85%] text-xs shadow-sm ${m.role === 'user' ? 'bg-[#21808D] text-white rounded-bl-none' : 'bg-white border text-gray-800 rounded-br-none'} ${m.isError ? 'border-red-300 bg-red-50 text-red-600' : ''}`}>
                                 {m.text && <p className="whitespace-pre-wrap">{m.text}</p>}
                                 
                                 {m.uiComponent === 'service-selector' && (
                                     <div className="flex flex-col gap-1 mt-2">
-                                        {services.map(s => <button key={s.id} onClick={() => handleServiceSelect(s.id)} className="p-2 border rounded-lg text-right text-[10px] bg-gray-50 hover:bg-blue-50">{s.name_ar}</button>)}
+                                        {services.map(s => <button key={s.id} onClick={() => handleServiceSelect(s.id)} className="p-2 border rounded-lg text-right text-[10px] bg-gray-50 hover:bg-blue-50 transition-colors">{s.name_ar}</button>)}
                                     </div>
                                 )}
                                 
                                 {m.uiComponent === 'quantity-input' && (
                                     <div className="mt-2 flex gap-2">
-                                        <input type="number" id="bot-q-in" defaultValue="1" className="w-16 border rounded px-2" />
-                                        <button onClick={() => handleQuantitySubmit(Number((document.getElementById('bot-q-in') as any).value))} className="bg-[#21808D] text-white px-3 py-1 rounded">تأكيد</button>
+                                        <input type="number" id="chat-q-in" defaultValue="1" className="w-16 border rounded px-2 text-center" />
+                                        <button onClick={() => handleQuantitySubmit(Number((document.getElementById('chat-q-in') as any).value))} className="bg-[#21808D] text-white px-3 py-1 rounded hover:bg-[#1D7480]">تأكيد</button>
                                     </div>
                                 )}
 
                                 {m.uiComponent === 'cart-actions' && (
                                     <div className="mt-2 flex flex-col gap-2">
-                                        <button onClick={() => processAIInteraction("إكمال الحجز")} className="bg-[#21808D] text-white p-2 rounded-lg font-bold">🚀 إكمال الحجز</button>
-                                        <button onClick={() => setMessages(prev => [...prev, {id: Date.now().toString(), role: 'model', uiComponent: 'service-selector'}])} className="border border-[#21808D] text-[#21808D] p-2 rounded-lg text-[10px]">➕ إضافة خدمة أخرى</button>
+                                        <button onClick={() => appContext?.openBookingModal()} className="bg-[#21808D] text-white p-2 rounded-lg font-bold shadow-sm">🚀 إتمام الحجز الآن</button>
+                                        <button onClick={() => setMessages(prev => [...prev, {id: Date.now().toString(), role: 'model', uiComponent: 'service-selector'}])} className="border border-[#21808D] text-[#21808D] p-2 rounded-lg text-[10px] bg-white">➕ إضافة خدمة أخرى</button>
                                     </div>
                                 )}
                             </div>
                         </div>
                     ))}
-                    {isLoading && <div className="text-center text-[10px] text-gray-400">جاري التفكير... 🧠</div>}
+                    {isLoading && <div className="text-center text-[10px] text-gray-400 animate-pulse">جاري التفكير... 🧠</div>}
                     <div ref={messagesEndRef} />
                 </div>
                 
                 <form onSubmit={(e) => { e.preventDefault(); if(inputText) { setMessages(prev => [...prev, {id: Date.now().toString(), role: 'user', text: inputText}]); processAIInteraction(inputText); setInputText(''); } }} className="p-3 border-t bg-white rounded-b-3xl flex gap-2">
-                    <input type="text" value={inputText} onChange={e => setInputText(e.target.value)} placeholder="اكتب سؤالك..." className="flex-grow border rounded-xl px-4 py-2 text-xs outline-none focus:border-[#21808D]" />
-                    <button type="submit" className="bg-[#21808D] text-white w-10 h-10 rounded-xl flex items-center justify-center">
+                    <input type="text" value={inputText} onChange={e => setInputText(e.target.value)} placeholder="اكتب سؤالك هنا..." className="flex-grow border rounded-xl px-4 py-2 text-xs outline-none focus:border-[#21808D] transition-all" />
+                    <button type="submit" className="bg-[#21808D] text-white w-10 h-10 rounded-xl flex items-center justify-center hover:bg-[#1D7480] transition-colors shadow-md">
                         <i className="fas fa-paper-plane"></i>
                     </button>
                 </form>

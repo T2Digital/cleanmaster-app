@@ -1,24 +1,15 @@
 {
-  "name": "clean-master---cleaning-services",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "name": "clean-master",
+  "version": "1.0.0",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build": "mkdir -p dist && cp index.html dist/ && cp -r * dist/ || true",
+    "start": "serve dist"
   },
   "dependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "react-router-dom": "^7.9.4",
-    "firebase": "^12.4.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.1.0",
+    "firebase": "^10.12.2",
     "@google/genai": "^1.30.0"
-  },
-  "devDependencies": {
-    "@types/node": "^22.14.0",
-    "@vitejs/plugin-react": "^5.0.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
   }
 }

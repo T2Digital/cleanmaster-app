@@ -11,10 +11,10 @@ const firebaseConfig = {
   measurementId: "G-XM7Q2PX8VR"
 };
 
-// Singleton pattern to ensure only one Firebase App is initialized across the application
+// Initialize App only once
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Initialize Firestore with the validated app instance
+// Get Firestore instance using the initialized app
 const db = getFirestore(app);
 
 export { db };

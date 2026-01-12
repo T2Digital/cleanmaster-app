@@ -42,8 +42,9 @@ const OrdersPage: React.FC = () => {
         const statusMap = {
           new: { text: 'طلب جديد', className: 'bg-blue-100 text-blue-800' },
           confirmed: { text: 'مؤكد', className: 'bg-yellow-100 text-yellow-800' },
-          'in-progress': { text: 'قيد التنفيذ', className: 'bg-purple-100 text-purple-800' },
-          completed: { text: 'مكتمل', className: 'bg-green-100 text-green-800' }
+          'in-progress': { text: 'قيد التنفيذ', className: 'bg-gray-200 text-gray-700' }, // Changed to Gray
+          completed: { text: 'مكتمل', className: 'bg-green-100 text-green-800' },
+          cancelled: { text: 'ملغى', className: 'bg-red-100 text-red-800' }
         };
         return statusMap[status] || { text: 'غير محدد', className: 'bg-gray-100 text-gray-800' };
     };
@@ -96,7 +97,11 @@ const OrdersPage: React.FC = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                                     <div>
                                         <strong className="block text-[#13343B]">الخدمات:</strong>
-                                        <span className="text-[#626C71]">{order.services.map(s => s.name_ar).join('، ')}</span>
+                                        <span className="text-[#626C71]">
+                                            {(order.services && order.services.length > 0)
+                                                ? order.services.map(s => s.name_ar).join('، ')
+                                                : 'لا توجد خدمات'}
+                                        </span>
                                     </div>
                                     <div>
                                         <strong className="block text-[#13343B]">التاريخ المطلوب:</strong>

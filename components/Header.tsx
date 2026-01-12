@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 
@@ -25,13 +24,13 @@ const Header: React.FC = () => {
             }
         };
 
-        if (location.pathname === pathname && hash) {
+        if (location.pathname === '/' && hash) {
             scrollToHash(hash);
         } else if (hash) {
-            navigate(pathname || '/');
+            navigate('/');
             setTimeout(() => scrollToHash(hash), 100);
         } else {
-            navigate(pathname);
+            navigate(pathname || path);
         }
 
         setMobileMenuOpen(false);
@@ -80,9 +79,13 @@ const Header: React.FC = () => {
         <header className="bg-[#FCFCF9] shadow-sm fixed top-0 left-0 right-0 z-50 transition-all duration-300">
             <div className="container mx-auto px-4">
                 <div className="flex items-center justify-between h-[70px]">
-                    <NavLink to="/" className="flex items-center gap-2 text-[#21808D] no-underline">
-                        <i className="fas fa-sparkles text-2xl"></i>
-                        <span className="text-xl font-bold">كلين ماستر</span>
+                    <NavLink to="/" className="flex items-center gap-2 no-underline">
+                        <img 
+                            src="https://i.ibb.co/f52dPHc/1000049048.jpg" 
+                            alt="Clean Master Logo" 
+                            className="h-12 w-auto object-contain rounded-full"
+                        />
+                        <span className="text-xl font-bold text-[#21808D] hidden sm:block">كلين ماستر</span>
                     </NavLink>
 
                     <nav className="hidden md:flex items-center">
@@ -116,9 +119,13 @@ const Header: React.FC = () => {
                 <div className="absolute top-0 left-0 w-full h-full bg-black/50 backdrop-blur-sm" onClick={toggleMobileMenu}></div>
                 <div className={`absolute top-0 right-0 w-[calc(100%-60px)] max-w-sm h-full bg-[#FCFCF9] shadow-lg transition-transform duration-300 flex flex-col ${isMobileMenuOpen ? 'transform translate-x-0' : 'transform translate-x-full'}`}>
                     <div className="flex items-center justify-between p-5 border-b border-[#5E5240]/[0.2]">
-                        <div className="flex items-center gap-2 text-[#21808D] no-underline">
-                            <i className="fas fa-sparkles text-2xl"></i>
-                            <span className="text-xl font-bold">كلين ماستر</span>
+                        <div className="flex items-center gap-2 no-underline">
+                             <img 
+                                src="https://i.ibb.co/f52dPHc/1000049048.jpg" 
+                                alt="Clean Master Logo" 
+                                className="h-10 w-auto object-contain rounded-full"
+                            />
+                            <span className="text-xl font-bold text-[#21808D]">كلين ماستر</span>
                         </div>
                     </div>
                     <ul className="list-none p-0 m-0 flex-grow">

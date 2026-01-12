@@ -1,6 +1,4 @@
-
 import React from 'react';
-import { NavLink } from 'react-router-dom';
 import { appData } from '../constants';
 
 const Footer: React.FC = () => {
@@ -11,9 +9,13 @@ const Footer: React.FC = () => {
             <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8 text-center md:text-right">
                     <div className="flex flex-col items-center md:items-start">
-                         <div className="flex items-center gap-2 text-[#21808D] no-underline mb-4">
-                            <i className="fas fa-sparkles text-2xl"></i>
-                            <span className="text-xl font-bold">{company_info.name_ar}</span>
+                         <div className="flex items-center gap-2 no-underline mb-4">
+                            <img 
+                                src="https://i.ibb.co/f52dPHc/1000049048.jpg" 
+                                alt="Clean Master Logo" 
+                                className="h-16 w-auto object-contain rounded-xl shadow-sm"
+                            />
+                            <span className="text-xl font-bold text-[#21808D]">{company_info.name_ar}</span>
                         </div>
                         <p className="text-[#626C71]">{company_info.description_ar}</p>
                         <div className="flex gap-3 mt-4">

@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { GoogleGenAI, Type, FunctionDeclaration, Content } from "@google/genai";
+import { GoogleGenAI, Type, Content } from "@google/genai";
 import { appData } from '../constants';
-import { createBooking } from '../api/bookingService';
 import { AppContext } from '../App';
 import { Booking } from '../types';
 
@@ -9,10 +8,8 @@ interface ChatMessage {
     id: string;
     role: 'user' | 'model';
     text?: string;
-    uiComponent?: 'service-selector' | 'quantity-input' | 'cart-actions' | 'date-time-picker' | 'none';
+    uiComponent?: 'service-selector' | 'quantity-input' | 'cart-actions' | 'none';
     isError?: boolean;
-    isInvoice?: boolean;
-    whatsappLink?: string;
 }
 
 const ChatBot: React.FC = () => {
@@ -42,16 +39,16 @@ const ChatBot: React.FC = () => {
     const processAIInteraction = async (userText: string) => {
         if (!userText.trim()) return;
         
-        // Accessing API KEY with a fallback to check if it's literally the string "undefined"
+        // Ensure process.env.API_KEY is available
         const apiKey = process.env.API_KEY;
         
         if (!apiKey || apiKey === "undefined") {
-            setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "⚠️ عذراً، لم يتم العثور على مفتاح الربط للذكاء الاصطناعي في بيئة الاستضافة. يرجى التواصل معنا عبر الواتساب لإتمام الحجز.", isError: true }]);
+            setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "⚠️ نظام الذكاء الاصطناعي يتطلب مفتاح تشغيل (API KEY) غير متوفر حالياً في إعدادات الخادم. يرجى إتمام حجزك عبر الواتساب.", isError: true }]);
             return;
         }
 
         setIsLoading(true);
-        const systemInstruction = `أنت مساعد ذكي لشركة كلين ماستر للتنظيف بمصر. تحدث بلهجة مصرية مهذبة. الخدمات: ${services.map(s => s.name_ar).join(', ')}`;
+        const systemInstruction = `أنت مساعد ذكي لشركة كلين ماستر للتنظيف بمصر. تحدث بلهجة مصرية. الخدمات: ${services.map(s => s.name_ar).join(', ')}`;
 
         try {
             const ai = new GoogleGenAI({ apiKey });
@@ -59,16 +56,17 @@ const ChatBot: React.FC = () => {
             currentHistory.push({ role: 'user', parts: [{ text: userText }] });
 
             const response = await ai.models.generateContent({
-                model: 'gemini-2.0-flash-exp',
+                model: 'gemini-1.5-flash', // Using a stable model fallback
                 contents: currentHistory,
                 config: { systemInstruction }
             });
 
-            const aiResponse = response.text || "موجود، كيف أساعدك؟";
+            const aiResponse = response.text || "أنا هنا، كيف أساعدك؟";
             setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: aiResponse }]);
             setChatHistory([...currentHistory, { role: 'model', parts: [{ text: aiResponse }] }]);
         } catch (e) {
-            setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "حدث خطأ في الاتصال بالسيرفر. يرجى المحاولة مرة أخرى.", isError: true }]);
+            console.error("Gemini Error:", e);
+            setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "حدث خطأ أثناء معالجة طلبك. يرجى المحاولة لاحقاً.", isError: true }]);
         } finally {
             setIsLoading(false);
         }
@@ -115,7 +113,7 @@ const ChatBot: React.FC = () => {
                     {messages.map(m => (
                         <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-start' : 'justify-end'}`}>
                             <div className={`p-3 rounded-2xl max-w-[85%] text-xs shadow-sm ${m.role === 'user' ? 'bg-[#21808D] text-white rounded-bl-none' : 'bg-white border text-gray-800 rounded-br-none'}`}>
-                                {m.text && <p>{m.text}</p>}
+                                {m.text && <p className="whitespace-pre-wrap">{m.text}</p>}
                                 
                                 {m.uiComponent === 'service-selector' && (
                                     <div className="flex flex-col gap-1 mt-2">
@@ -125,8 +123,8 @@ const ChatBot: React.FC = () => {
                                 
                                 {m.uiComponent === 'quantity-input' && (
                                     <div className="mt-2 flex gap-2">
-                                        <input type="number" id="q-in" defaultValue="1" className="w-16 border rounded px-2" />
-                                        <button onClick={() => handleQuantitySubmit(Number((document.getElementById('q-in') as any).value))} className="bg-[#21808D] text-white px-3 py-1 rounded">تأكيد</button>
+                                        <input type="number" id="bot-q-in" defaultValue="1" className="w-16 border rounded px-2" />
+                                        <button onClick={() => handleQuantitySubmit(Number((document.getElementById('bot-q-in') as any).value))} className="bg-[#21808D] text-white px-3 py-1 rounded">تأكيد</button>
                                     </div>
                                 )}
 

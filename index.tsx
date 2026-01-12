@@ -8,17 +8,20 @@ if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }
 
+// Disabled Service Worker to fix 'unsupported MIME type' errors in SPAs
+/*
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/service-worker.js')
       .then(registration => {
-        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        console.log('ServiceWorker registration successful');
       })
       .catch(err => {
         console.log('ServiceWorker registration failed: ', err);
       });
   });
 }
+*/
 
 const root = createRoot(rootElement);
 root.render(

@@ -11,8 +11,10 @@ const firebaseConfig = {
   measurementId: "G-XM7Q2PX8VR"
 };
 
-// Singleton initialization to prevent multiple instances or empty configs
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+// Ensure app is initialized exactly once
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+
+// Initialize Firestore and export
 const db = getFirestore(app);
 
 export { db };

@@ -48,7 +48,7 @@ const BookingDetailModal: React.FC<BookingDetailModalProps> = ({ booking, onClos
                         <DetailItem label="الهاتف" value={booking.phone} />
                         <DetailItem label="التاريخ" value={booking.date} />
                         <DetailItem label="الوقت" value={booking.time} />
-                        <DetailItem label="التكلفة النهائية" value={`${booking.finalPrice.toLocaleString()} جنيه`} />
+                        <DetailItem label="التكلفة النهائية" value={`${(booking.finalPrice || 0).toLocaleString()} جنيه`} />
                         <DetailItem label="طريقة الدفع" value={booking.paymentMethod === 'cash' ? 'نقدي' : 'إلكتروني'} />
                         <div className="md:col-span-2">
                            <DetailItem label="العنوان" value={booking.address} />

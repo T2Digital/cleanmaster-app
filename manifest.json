@@ -1,23 +1,21 @@
 {
-  "name": "كلين ماستر - خدمات تنظيف احترافية",
+  "name": "كلين ماستر",
   "short_name": "كلين ماستر",
   "display": "standalone",
   "theme_color": "#218384",
-  "background_color": "#FCFCF9",
+  "background_color": "#fcfcf9",
   "start_url": "./",
   "scope": "/",
   "icons": [
     {
       "src": "https://i.ibb.co/f52dPHc/1000049048.jpg",
       "sizes": "192x192",
-      "type": "image/jpeg",
-      "purpose": "any maskable"
+      "type": "image/jpeg"
     },
     {
       "src": "https://i.ibb.co/f52dPHc/1000049048.jpg",
       "sizes": "512x512",
-      "type": "image/jpeg",
-      "purpose": "any maskable"
+      "type": "image/jpeg"
     }
   ]
 }

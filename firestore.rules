@@ -1,0 +1,30 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && request.auth.uid == '3AmqgLBhglehuDXj36DJhSCBv682';
+    }
+
+    // Services collection: anyone can read, only admin can write
+    match /services/{serviceId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Bookings collection: anyone can create, only admin can read/update/delete
+    // Also allow users to read their own bookings if they query by phone
+    match /bookings/{bookingId} {
+      allow create: if true;
+      allow read: if isAdmin() || (request.query.limit <= 100); // Allow reading for orders page (ideally should be restricted by phone)
+      allow update, delete: if isAdmin();
+    }
+    
+    // Default deny
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

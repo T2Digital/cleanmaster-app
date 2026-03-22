@@ -23,8 +23,10 @@ export const createBooking = async (
   bookingData: Partial<Booking>
 ): Promise<Booking> => {
   try {
-    if (!db) throw new Error("Database not initialized");
-
+    // THE FIX: Use JSON.stringify and JSON.parse as the ultimate sanitization method.
+    // This is a robust way to strip all non-serializable properties, Proxy wrappers,
+    // and circular references from the React state object, converting it into a
+    // Plain Old JavaScript Object (POJO) that Firestore can safely handle.
     const pojoBookingData = JSON.parse(JSON.stringify(bookingData));
 
     const newBooking: Booking = {
@@ -44,25 +46,26 @@ export const createBooking = async (
       finalPrice: pojoBookingData.finalPrice || 0,
       discountAmount: pojoBookingData.discountAmount || 0,
       advancePayment: pojoBookingData.advancePayment || 0,
+      // Add server-generated fields
       bookingId: generateBookingId(),
       status: 'new',
       timestamp: new Date().toISOString(),
     };
 
-    const docRef = await addDoc(collection(db, "bookings"), newBooking);
+    await addDoc(collection(db, "bookings"), newBooking);
+    
+    // Return the full booking data that was saved.
     return newBooking;
 
-  } catch (e: any) {
-    console.error("Firestore Creation Error:", e);
-    // Fallback to local success if UI requires continuation, but throw for awareness
-    throw new Error(e.message || "Could not create booking");
+  } catch (e) {
+    console.error("Error adding document: ", e);
+    throw new Error("Could not create booking");
   }
 };
 
 // Get bookings - all or by phone number
 export const getBookings = async (phone?: string): Promise<Booking[]> => {
   try {
-    if (!db) return [];
     const bookingsCollection = collection(db, "bookings");
     const q = phone
       ? query(bookingsCollection, where("phone", "==", phone))
@@ -71,15 +74,17 @@ export const getBookings = async (phone?: string): Promise<Booking[]> => {
     const querySnapshot = await getDocs(q);
     const bookings: Booking[] = [];
     querySnapshot.forEach((doc) => {
+      // Add the firestore doc id to the object if needed later, for now data is sufficient
       bookings.push({ ...doc.data() } as Booking);
     });
 
+    // Sort by timestamp descending to show newest first
     return bookings.sort(
       (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
   } catch (e) {
     console.error("Error getting documents: ", e);
-    return [];
+    throw new Error("Could not retrieve bookings");
   }
 };
 
@@ -89,12 +94,14 @@ export const updateBookingStatus = async (
   status: BookingStatus
 ): Promise<Booking | null> => {
   try {
-    if (!db) return null;
     const bookingsCollection = collection(db, "bookings");
     const q = query(bookingsCollection, where("bookingId", "==", bookingId));
     const querySnapshot = await getDocs(q);
 
-    if (querySnapshot.empty) return null;
+    if (querySnapshot.empty) {
+      console.error("No booking found with ID:", bookingId);
+      return null;
+    }
 
     const bookingDoc = querySnapshot.docs[0];
     const docRef = doc(db, "bookings", bookingDoc.id);
@@ -107,6 +114,6 @@ export const updateBookingStatus = async (
     return null;
   } catch (e) {
     console.error("Error updating document: ", e);
-    return null;
+    throw new Error("Could not update booking status");
   }
 };

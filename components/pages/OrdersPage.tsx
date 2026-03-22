@@ -113,7 +113,7 @@ const OrdersPage: React.FC = () => {
                                     </div>
                                     <div>
                                         <strong className="block text-[#13343B]">إجمالي التكلفة:</strong>
-                                        <span className="text-[#626C71]">{order.finalPrice.toLocaleString()} جنيه</span>
+                                        <span className="text-[#626C71]">{(order.finalPrice || 0).toLocaleString()} جنيه</span>
                                     </div>
                                 </div>
                             </div>

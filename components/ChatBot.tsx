@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { GoogleGenAI, Type, FunctionDeclaration, Content } from "@google/genai";
-import { appData } from '../constants';
+import { appData, getEnv } from '../constants';
 import { createBooking } from '../api/bookingService';
 import { AppContext } from '../App';
 import { SelectedService, Booking, Location, Photo } from '../types';
@@ -409,7 +409,15 @@ const ChatBot: React.FC = () => {
         ];
 
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const apiKey = getEnv('GEMINI_API_KEY', getEnv('API_KEY', process.env.VITE_GEMINI_API_KEY || process.env.VITE_API_KEY || process.env.API_KEY || process.env.GEMINI_API_KEY || ''));
+            if (!apiKey) {
+                console.error("Gemini API key is missing");
+                setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "عذراً، هناك مشكلة في إعدادات الاتصال. يرجى المحاولة لاحقاً.", isError: true }]);
+                setIsLoading(false);
+                return;
+            }
+            
+            const ai = new GoogleGenAI({ apiKey });
             const currentHistory = [...chatHistory];
             if (userText) currentHistory.push({ role: 'user', parts: [{ text: userText }] });
 

@@ -1,7 +1,7 @@
 import { Service, Testimonial, BeforeAfterImage } from './types';
 
 // Helper to get environment variables safely
-const getEnv = (key: string, defaultValue: string): string => {
+export const getEnv = (key: string, defaultValue: string): string => {
   let value: any = undefined;
   try {
     // Check import.meta.env (Vite standard)

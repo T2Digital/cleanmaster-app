@@ -128,13 +128,6 @@
           NODE_ENV: 'production'
         }
       };
-      
-      window.addEventListener('error', function(event) {
-        document.body.innerHTML = '<div style="color:red;padding:20px;z-index:9999;position:relative;background:white;"><h1>Global Error</h1><pre>' + event.error?.stack + '</pre></div>';
-      });
-      window.addEventListener('unhandledrejection', function(event) {
-        document.body.innerHTML = '<div style="color:red;padding:20px;z-index:9999;position:relative;background:white;"><h1>Unhandled Promise Rejection</h1><pre>' + event.reason?.stack + '</pre></div>';
-      });
     </script>
     <link rel="stylesheet" href="/index.css">
 </head>

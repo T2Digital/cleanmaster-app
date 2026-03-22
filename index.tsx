@@ -35,6 +35,19 @@ if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }
 
+// Unregister old manual service worker if it exists
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+    for(let registration of registrations) {
+      if (registration.active && registration.active.scriptURL.includes('service-worker.js')) {
+        registration.unregister().then(() => {
+          console.log('Old service worker unregistered');
+        });
+      }
+    }
+  });
+}
+
 const root = createRoot(rootElement);
 root.render(
   <ErrorBoundary>
